@@ -140,6 +140,8 @@ class ReportGenerator:
 
     def _format_data_sheet(self, worksheet, data):
         """Format a data sheet with appropriate column formats"""
+        from openpyxl.utils import get_column_letter
+
         self.formatter.format_header(worksheet, self.config)
 
         # Identify currency columns
@@ -148,8 +150,6 @@ class ReportGenerator:
         date_cols = ['Date']
 
         for idx, col in enumerate(data.columns, start=1):
-            col_letter = self.formatter.__class__.__dict__['format_currency_column'].__code__.co_varnames[1]
-            from openpyxl.utils import get_column_letter
             col_letter = get_column_letter(idx)
 
             if col in currency_cols:
