@@ -31,6 +31,7 @@ wheels/
 
 # Data files
 *.csv
+!sample_data/*.csv
 *.json
 data/
 output/
