@@ -115,19 +115,22 @@ class ReportGenerator:
             summary_df.to_excel(writer, sheet_name='Summary', index=False)
             self._format_summary_sheet(writer.sheets['Summary'])
 
-            # Detailed data
+            # Detailed data with trend line chart
             data.to_excel(writer, sheet_name='Detailed Data', index=False)
             self._format_data_sheet(writer.sheets['Detailed Data'], data)
+            self._add_line_chart(writer.sheets['Detailed Data'], data, 'Sales & Profit Trend Over Time', position='J2')
 
-            # Region analysis
+            # Region analysis with both bar and pie charts
             region_summary.to_excel(writer, sheet_name='By Region', index=False)
             self._format_data_sheet(writer.sheets['By Region'], region_summary)
-            self._add_bar_chart(writer.sheets['By Region'], 'Sales by Region')
+            self._add_bar_chart(writer.sheets['By Region'], 'Sales by Region', position='E2')
+            self._add_pie_chart(writer.sheets['By Region'], 'Sales Distribution by Region', position='E17')
 
-            # Product analysis
+            # Product analysis with both bar and pie charts
             product_summary.to_excel(writer, sheet_name='By Product', index=False)
             self._format_data_sheet(writer.sheets['By Product'], product_summary)
-            self._add_bar_chart(writer.sheets['By Product'], 'Sales by Product')
+            self._add_bar_chart(writer.sheets['By Product'], 'Sales by Product', position='E2')
+            self._add_pie_chart(writer.sheets['By Product'], 'Sales Distribution by Product', position='E17')
 
         logger.info(f"Sales report generated successfully: {output_file}")
 
@@ -165,7 +168,7 @@ class ReportGenerator:
         self.formatter.freeze_panes(worksheet)
         self.formatter.add_autofilter(worksheet)
 
-    def _add_bar_chart(self, worksheet, title):
+    def _add_bar_chart(self, worksheet, title, position="E2"):
         """Add a bar chart to the worksheet"""
         chart = BarChart()
         chart.title = title
@@ -181,9 +184,63 @@ class ReportGenerator:
         chart.set_categories(categories)
 
         # Place chart
-        worksheet.add_chart(chart, "E2")
+        worksheet.add_chart(chart, position)
 
-        logger.info(f"Chart added: {title}")
+        logger.info(f"Bar chart added: {title}")
+
+    def _add_pie_chart(self, worksheet, title, position="E12"):
+        """Add a pie chart to the worksheet"""
+        chart = PieChart()
+        chart.title = title
+        chart.style = self.config.CHART_STYLE
+        chart.width = self.config.CHART_WIDTH
+        chart.height = self.config.CHART_HEIGHT
+
+        # Data references
+        data = Reference(worksheet, min_col=2, min_row=1, max_row=worksheet.max_row, max_col=2)
+        categories = Reference(worksheet, min_col=1, min_row=2, max_row=worksheet.max_row)
+
+        chart.add_data(data, titles_from_data=True)
+        chart.set_categories(categories)
+
+        # Place chart
+        worksheet.add_chart(chart, position)
+
+        logger.info(f"Pie chart added: {title}")
+
+    def _add_line_chart(self, worksheet, data_df, title, position="J2"):
+        """Add a line chart showing sales trend over time"""
+        chart = LineChart()
+        chart.title = title
+        chart.style = self.config.CHART_STYLE
+        chart.width = self.config.CHART_WIDTH
+        chart.height = self.config.CHART_HEIGHT
+        chart.y_axis.title = "Amount ($)"
+        chart.x_axis.title = "Date"
+
+        # Find column indices for Sales and Profit
+        cols = list(data_df.columns)
+        sales_col = cols.index('Sales') + 1 if 'Sales' in cols else None
+        profit_col = cols.index('Profit') + 1 if 'Profit' in cols else None
+
+        # Add Sales line
+        if sales_col:
+            data = Reference(worksheet, min_col=sales_col, min_row=1, max_row=min(50, worksheet.max_row))
+            chart.add_data(data, titles_from_data=True)
+
+        # Add Profit line
+        if profit_col:
+            data = Reference(worksheet, min_col=profit_col, min_row=1, max_row=min(50, worksheet.max_row))
+            chart.add_data(data, titles_from_data=True)
+
+        # Categories (dates)
+        categories = Reference(worksheet, min_col=1, min_row=2, max_row=min(50, worksheet.max_row))
+        chart.set_categories(categories)
+
+        # Place chart
+        worksheet.add_chart(chart, position)
+
+        logger.info(f"Line chart added: {title}")
 
     def generate_from_csv(self, csv_file, output_file, report_type='basic'):
         """
