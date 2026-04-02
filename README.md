@@ -2,6 +2,21 @@
 
 A Python-based automated report generation tool that transforms raw data into professional, formatted Excel reports with charts, pivot tables, and custom styling.
 
+## 📸 Screenshots
+
+### Sales Analysis with Multiple Visualizations
+![By Region Analysis](images/by_region.png)
+*Regional sales breakdown with bar chart and pie chart visualizations*
+
+![By Product Analysis](images/by_product.png)
+*Product performance analysis with distribution charts*
+
+![Sales Trend](images/detailed_data.png)
+*Detailed data with line chart showing sales and profit trends over time*
+
+![Summary Dashboard](images/summary.png)
+*Executive summary with key metrics*
+
 ## Features
 
 - **Automated Formatting**: Professional styling with headers, borders, and color schemes
